@@ -12,9 +12,9 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  // ===========================================================================
+  // ==========================================
   // 1. STATE CONFIGURATION
-  // ===========================================================================
+  // ==========================================
   bool isDarkMode = true;
   bool isDemoMode = false;
   String currentLang = 'en';
@@ -33,15 +33,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Timer? _pollingTimer;
   String? lastError;
 
-  // Offline Diagnostics Simulation State (active when hardware is offline)
-  double offlineTds = 345.0;
-  double offlinePh = 7.15;
-  double offlineTurbidity = 2.4;
-  double offlineTemperature = 25.0;
-
-  // ===========================================================================
-  // 2. MULTI-LANGUAGE DICTIONARY (English, Bengali, Hindi)
-  // ===========================================================================
+  // ==========================================
+  // 2. LOCALIZATION DICTIONARY
+  // ==========================================
   final Map<String, Map<String, String>> _dict = {
     'en': {
       'hydro': 'HYDROMETRIC',
@@ -84,26 +78,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
       'status_drinkable': 'DRINKABLE WATER (SAFE)',
       'status_domestic': 'NOT DRINKABLE (USE FOR BATH / WASH)',
       'status_toxic': 'DANGER: NOT DRINKABLE (UNSAFE)',
-      'desc_drinkable': 'Parameters are within safe drinking thresholds.',
-      'desc_domestic': 'Cloudy or hard water. Not for drinking, but safe for skin and washing.',
-      'desc_toxic': 'Severe chemical/clarity risk. Avoid drinking and skin contact.',
+      'desc_drinkable': 'All chemical, mineral, and physical parameters are within safe drinking limits.',
+      'desc_domestic': 'Water is turbid or warm/mineralized. Unfit for drinking, but safe for washing and bathing.',
+      'desc_toxic': 'Hazardous water parameters detected. Severe toxicity or physical hazard risk.',
+      'desc_thermal_danger': 'Extreme thermal hazard detected. Immediate scalding risk or sensor fault.',
+      'health_alerts_title': 'DETECTED PARAMETER WARNINGS',
       
-      // ML Water Treatment Engine
-      'treatment_title': 'AI WATER TREATMENT PROTOCOL',
-      'model_tag': 'On-Device Edge ML: 96.2% Confidence',
-      'offline_badge': 'OFFLINE AI DIAGNOSTICS ACTIVE',
-      'offline_presets': 'TEST OFFLINE WATER SAMPLES:',
-      'preset_clean': 'Safe / Drinking',
-      'preset_cloudy': 'Cloudy / Bathing',
-      'preset_toxic': 'Toxic / Unsafe',
-      'action_plan': 'PURIFICATION ACTION PLAN',
-      'safe_treatment': 'Water is certified drinkable. No chemical treatment required. Optional 1-micron particulate polish or UV sterilizer for long-term storage.',
-      'step1_cloudy': '1. Coagulation: Add 10-15 mg/L food-grade Alum (fitkari). Stir gently for 1 minute and allow 30 minutes for suspended clay/dirt to settle.',
-      'step2_cloudy': '2. Mechanical Filtration: Decant the clear top layer and pour through an Activated Carbon / Multi-sand filter to drop turbidity below 1.0 NTU.',
-      'step3_cloudy': '3. Thermal Disinfection: Bring water to a rolling boil (100°C) for 3-5 minutes to destroy biological pathogens.',
-      'step1_danger': '1. Chemical Neutralization: If pH is acidic (<6.5), add Sodium Bicarbonate (baking soda). If alkaline (>8.5), add food-grade citric acid until pH reaches 7.2.',
-      'step2_danger': '2. High-Pressure RO Filtration: Pass through a multi-stage Reverse Osmosis membrane (>50 PSI) to filter heavy metals and strip toxic dissolved solids below 200 PPM.',
-      'step3_danger': '3. Post-Sterilization: Expose to high-intensity UV-C radiation (254 nm) to eliminate remaining viruses and microbial contaminants.',
+      // Health Warnings
+      'alert_ph_low': 'Acidic Water: Risk of gastrointestinal irritation and heavy metal leaching from pipes.',
+      'alert_ph_high': 'Alkaline Water: Bitter taste, skin dryness/irritation, and digestive disruption.',
+      'alert_tds_high': 'High TDS: Excess minerals strain kidney filtration and create digestive discomfort.',
+      'alert_turb_high': 'High Turbidity: Suspended matter shields bacteria and pathogens from disinfection.',
+      'alert_temp_high': 'Elevated Temperature: Accelerates bacterial growth and microbial pathogen incubation.',
+      'alert_temp_critical': 'Critical Thermal Hazard: Temperature exceeds safe physical limits. Severe burn risk.',
+      
+      // Dynamic Water Treatment Protocols
+      'treatment_title': 'WATER TREATMENT PROTOCOL',
+      'treatment_sub': 'Parameter-Specific Purification Guide',
+      'action_plan': 'TAILORED PURIFICATION PLAN',
+      'tap_details': 'Tap for Hardware Automation',
+      'in_progress_title': 'Feature In Progress',
+      'in_progress_desc': 'Automated chemical dosing valves and IoT peristaltic pump control are currently under development in firmware v2.0.',
+      'in_progress_ok': 'UNDERSTOOD',
+      'safe_treatment': 'Water meets all WHO potability standards. No chemical neutralization required. Optional 1-micron polish or UV-C sterilization for storage.',
+      'remedy_ph_low': 'pH Neutralization: Water is acidic (<6.5). Dose with food-grade Sodium Bicarbonate (Baking Soda) or filter through Calcite mineral beds until pH reaches 7.2.',
+      'remedy_ph_high': 'Alkaline Buffer: Water is excessively alkaline (>8.5). Buffer by infusing food-grade Citric Acid or blending with demineralized neutral water.',
+      'remedy_tds': 'RO Desalination: High TDS detected (>300 PPM). Run water through a multi-stage Reverse Osmosis (RO) membrane (>50 PSI) to filter heavy mineral salts down below 150 PPM.',
+      'remedy_turb': 'Coagulation & Sedimentation: Turbidity is elevated (>1.0 NTU). Add 10-15 mg/L Alum (fitkari), stir gently for 1 minute, settle for 30 minutes, then filter through activated carbon.',
+      'remedy_temp_high': 'Thermal Dissipation: Water is too hot (>35°C). Allow natural convection cooling to 20-25°C before handling to eliminate burn risk and halt bacterial incubation.',
+      'remedy_temp_low': 'Low Temperature / Sensor Check: Temperature reading is <= 0°C. Verify fluid phase against freezing or inspect DS18B20 sensor wiring connection.',
     },
     'bn': {
       'hydro': 'হাইড্রোমেট্রিক',
@@ -146,26 +149,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
       'status_drinkable': 'পানযোগ্য জল (নিরাপদ)',
       'status_domestic': 'পানীয় নয় (স্নান ও ধোয়ার উপযোগী)',
       'status_toxic': 'বিপদ: পানের অযোগ্য (অনিরাপদ)',
-      'desc_drinkable': 'জলের সমস্ত প্যারামিটার পানের জন্য সম্পূর্ণ নিরাপদ।',
-      'desc_domestic': 'ঘোলাটে বা খনিজযুক্ত জল। পান করবেন না, তবে স্নান বা ধোয়ার জন্য নিরাপদ।',
-      'desc_toxic': 'মারাত্মক ক্ষতিকর জল। পান করা বা স্পর্শ করা থেকে বিরত থাকুন।',
+      'desc_drinkable': 'জলের সমস্ত রাসায়নিক ও শারীরিক উপাদান পানের জন্য সম্পূর্ণ নিরাপদ।',
+      'desc_domestic': 'জলটি ঘোলাটে বা গরম/অতিরিক্ত খনিজযুক্ত। পানের অযোগ্য, তবে স্নান ও ধোয়ার জন্য নিরাপদ।',
+      'desc_toxic': 'মারাত্মক ক্ষতিকর জল সনাক্ত হয়েছে। বিষাক্ততার উচ্চ ঝুঁকি রয়েছে।',
+      'desc_thermal_danger': 'মারাত্মক তাপমাত্রার ঝুঁকি সনাক্ত হয়েছে। গুরুতরভাবে পুড়ে যাওয়ার ঝুঁকি বা সেন্সর ত্রুটি।',
+      'health_alerts_title': 'সনাক্তকৃত স্বাস্থ্য ঝুঁকি ও সতর্কতা',
       
-      // ML Water Treatment Engine
-      'treatment_title': 'এআই জল শোধন নির্দেশিকা',
-      'model_tag': 'অন-ডিভাইস এজ এমএল: ৯৬.২% নির্ভুলতা',
-      'offline_badge': 'অফলাইন এআই ডায়াগনস্টিকস সক্রিয়',
-      'offline_presets': 'অফলাইনে জলের নমুনা পরীক্ষা করুন:',
-      'preset_clean': 'নিরাপদ / পানযোগ্য',
-      'preset_cloudy': 'ঘোলাটে / স্নানযোগ্য',
-      'preset_toxic': 'বিষাক্ত / অনিরাপদ',
-      'action_plan': 'পরিশোধন প্রক্রিয়া',
+      // Health Warnings
+      'alert_ph_low': 'অম্লীয় জল (Low pH): পেটের সমস্যা, দাঁতের এনামেল ক্ষয় এবং পাইপ থেকে বিষাক্ত ধাতু দ্রবীভূত হওয়ার ঝুঁকি।',
+      'alert_ph_high': 'ক্ষারীয় জল (High pH): সাবানের মতো কটু স্বাদ, ত্বকে চুলকানি/শুষ্কতা এবং হজম প্রক্রিয়ায় বিঘ্ন।',
+      'alert_tds_high': 'উচ্চ TDS: অতিরিক্ত খনিজের উপস্থিতি কিডনির উপর চাপ বৃদ্ধি করে এবং পেটের ব্যাধি ঘটায়।',
+      'alert_turb_high': 'উচ্চ ঘোলাটে ভাব (Turbidity): ভাসমান ধূলিকণা ক্ষতিকর জীবাণু ও পরজীবীকে ফিল্টারিং থেকে রক্ষা করে।',
+      'alert_temp_high': 'উচ্চ তাপমাত্রা: ক্ষতিকর ব্যাকটেরিয়া এবং অণুজীবের বংশবৃদ্ধির হার বিপজ্জনকভাবে বৃদ্ধি পায়।',
+      'alert_temp_critical': 'মারাত্মক তাপীয় ঝুঁকি: জলের তাপমাত্রা অত্যন্ত বিপজ্জনক। তীব্রভাবে পুড়ে যাওয়ার চরম ঝুঁকি রয়েছে।',
+      
+      // Dynamic Water Treatment Protocols
+      'treatment_title': 'জল শোধন নির্দেশিকা',
+      'treatment_sub': 'প্যারামিটার-ভিত্তিক পরিশোধন প্রক্রিয়া',
+      'action_plan': 'নির্দিষ্ট পরিশোধন পরিকল্পনা',
+      'tap_details': 'হার্ডওয়্যার অটোমেশনের জন্য স্পর্শ করুন',
+      'in_progress_title': 'বৈশিষ্ট্যটি প্রক্রিয়াধীন',
+      'in_progress_desc': 'স্বয়ংক্রিয় রাসায়নিক নিয়ন্ত্রক পাম্প এবং হার্ডওয়্যার ডোজার মডিউল ফার্মওয়্যার v2.0 সংস্করণে নির্মাণাধীন রয়েছে।',
+      'in_progress_ok': 'বুঝেছি',
       'safe_treatment': 'জলটি পানের জন্য সম্পূর্ণ নিরাপদ। অতিরিক্ত রাসায়নিক শোধনের প্রয়োজন নেই। দীর্ঘমেয়াদী সংরক্ষণের জন্য সাধারণ UV ব্যবহার করতে পারেন।',
-      'step1_cloudy': '১. থিতানো (Coagulation): প্রতি লিটারে ১০-১৫ মিলিগ্রাম ফটকিরি মেশান। ১ মিনিট নাড়ুন এবং ৩০ মিনিট স্থির রেখে তলানি নিচে জমতে দিন।',
-      'step2_cloudy': '২. যান্ত্রিক ফিল্টারিং: উপরের স্বচ্ছ জল আলাদা করে অ্যাক্টিভেটেড কার্বন বা বালির ফিল্টারের মাধ্যমে ছেঁকে ঘোলাটে ভাব ১.০ NTU-এর নিচে আনুন।',
-      'step3_cloudy': '৩. জীবাণুমুক্তকরণ: সমস্ত ক্ষতিকর ব্যাকটেরিয়া ও জীবাণু ধ্বংস করতে জলটি ১০০°C তাপমাত্রায় ৩-৫ মিনিট ভালো করে ফোটান।',
-      'step1_danger': '১. রাসায়নিক সমতা: জল অম্লীয় (pH < ৬.৫) হলে বেকিং সোডা এবং অতিরিক্ত ক্ষারীয় (pH > ৮.৫) হলে সাইট্রিক অ্যাসিড মিশিয়ে pH ৭.২-এ আনুন।',
-      'step2_danger': '২. রিভার্স অসমোসিস (RO): ক্ষতিকর ধাতু ও অতিরিক্ত TDS ২০০ PPM-এর নিচে নামাতে জলটিকে উচ্চচাপযুক্ত আরও (RO) ফিল্টারের মধ্য দিয়ে চালান।',
-      'step3_danger': '৩. ইউভি নির্বীজন: অবশিষ্ট অণুজীব ও ভাইরাস সম্পূর্ণ ধ্বংস করতে আল্ট্রাভায়োলেট (UV-C ২৫৪ nm) রশ্মি প্রয়োগ করুন।',
+      'remedy_ph_low': 'pH সমতাকরণ: জল অম্লীয় (<৬.৫)। বেকিং সোডা মেশান অথবা ক্যালসাইট ফিল্টারের মধ্য দিয়ে চালিয়ে pH ৭.২-এ আনুন।',
+      'remedy_ph_high': 'ক্ষারীয়তা হ্রাস: জল অতিরিক্ত ক্ষারীয় (>৮.৫)। পরিমিত সাইট্রিক অ্যাসিড বা সাধারণ জল মিশিয়ে pH স্বাভাবিক মাত্রায় আনুন।',
+      'remedy_tds': 'RO ফিল্টারিং: উচ্চ TDS (>৩০০ PPM) দূর করতে জলটিকে উচ্চচাপযুক্ত রিভার্স অসমোসিস (RO) মেমব্রেনের মধ্য দিয়ে চালান।',
+      'remedy_turb': 'থিতানো ও ফিল্টারিং: ঘোলাটে ভাব দূর করতে প্রতি লিটারে ১০-১৫ মিলিগ্রাম ফটকিরি মেশান এবং কার্বন ফিল্টার ব্যবহার করুন।',
+      'remedy_temp_high': 'তাপমাত্রা হ্রাস: জল অত্যন্ত গরম (>৩৫°C)। ব্যবহারের পূর্বে জল স্বাভাবিক তাপমাত্রায় (২০-২৫°C) ঠান্ডা হতে দিন।',
+      'remedy_temp_low': 'হিমায়িত/সেন্সর পরীক্ষা: তাপমাত্রা <= ০°C। বরফ পরীক্ষা করুন অথবা তাপমাত্রা সেন্সরের তার পরীক্ষা করুন।',
     },
     'hi': {
       'hydro': 'हाइड्रोमेट्रिक',
@@ -208,34 +220,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
       'status_drinkable': 'पीने योग्य पानी (सुरक्षित)',
       'status_domestic': 'पीने योग्य नहीं (नहाने और कपड़े धोने योग्य)',
       'status_toxic': 'खतरा: पीने योग्य नहीं (असुरक्षित)',
-      'desc_drinkable': 'सभी सेंसर मानक सुरक्षित पेयजल सीमा के भीतर हैं।',
-      'desc_domestic': 'धुंधला या कठोर जल। केवल नहाने और घरेलू धोने के काम में लाएं।',
-      'desc_toxic': 'हानिकारक रासायनिक स्तर पाया गया। पानी से दूर रहें।',
+      'desc_drinkable': 'सभी रासायनिक, खनिज और भौतिक मानक सुरक्षित पेयजल सीमा के भीतर हैं।',
+      'desc_domestic': 'पानी धुंधला या गर्म/खनिजों से युक्त है। पीने योग्य नहीं, लेकिन नहाने और धोने के लिए सुरक्षित।',
+      'desc_toxic': 'घातक स्तर पाया गया। पानी का सेवन या उपयोग न करें।',
+      'desc_thermal_danger': 'अत्यधिक तापीय खतरा। जलने का गंभीर जोखिम या सेंसर में खराबी।',
+      'health_alerts_title': 'स्वास्थ्य जोखिम एवं चेतावनियाँ',
       
-      // ML Water Treatment Engine
-      'treatment_title': 'एआई जल शोधन प्रोटोकॉल',
-      'model_tag': 'ऑन-डिवाइस एज एमएल: ९६.२% सटीकता',
-      'offline_badge': 'ऑफलाइन एआई डायग्नोस्टिक्स सक्रिय',
-      'offline_presets': 'ऑफलाइन पानी के नमूने का परीक्षण करें:',
-      'preset_clean': 'सुरक्षित / पीने योग्य',
-      'preset_cloudy': 'धुंधला / नहाने योग्य',
-      'preset_toxic': 'विषाक्त / असुरक्षित',
-      'action_plan': 'जल शुद्धिकरण प्रक्रिया',
+      // Health Warnings
+      'alert_ph_low': 'अम्लीय पानी (Low pH): पेट में जलन, दांतों के क्षरण और पाइप से जहरीली धातुओं के घुलने का खतरा।',
+      'alert_ph_high': 'क्षारीय पानी (High pH): कड़वा साबुन जैसा स्वाद, त्वचा में सूखापन और पाचन एंजाइमों में व्यवधान।',
+      'alert_tds_high': 'उच्च TDS: अत्यधिक खनिज गुर्दे (किडनी) पर दबाव डालते हैं और पेट की समस्याएं पैदा करते हैं।',
+      'alert_turb_high': 'अधिक मैलापन (Turbidity): निलंबित कण हानिकारक बैक्टीरिया और कीटाणुओं को नष्ट होने से बचाते हैं।',
+      'alert_temp_high': 'उच्च तापमान: बैक्टीरिया और संक्रामक रोगाणुओं के तेजी से पनपने का खतरा बढ़ता है।',
+      'alert_temp_critical': 'गंभीर तापीय जोखिम: तापमान अत्यधिक खतरनाक स्तर पर है। जलने का तीव्र खतरा।',
+      
+      // Dynamic Water Treatment Protocols
+      'treatment_title': 'जल शोधन प्रोटोकॉल',
+      'treatment_sub': 'पैरामीटर-आधारित शुद्धिकरण गाइड',
+      'action_plan': 'विशिष्ट शुद्धिकरण योजना',
+      'tap_details': 'हार्डवेयर ऑटोमेशन के लिए टैप करें',
+      'in_progress_title': 'सुविधा प्रगति पर है',
+      'in_progress_desc': 'स्वचालित रासायनिक नियंत्रण वाल्व और पंप डोजिंग सिस्टम फर्मवेयर v2.0 के लिए निर्माणाधीन है।',
+      'in_progress_ok': 'ठीक है',
       'safe_treatment': 'जल पीने के लिए पूरी तरह सुरक्षित है। किसी रासायनिक प्रक्रिया की आवश्यकता नहीं है। भंडारण के लिए वैकल्पिक यूवी (UV) शुद्धिकरण करें।',
-      'step1_cloudy': '१. स्कंदन (Coagulation): प्रति लीटर १०-१५ मिलीग्राम फिटकरी मिलाएं। १ मिनट हिलाएं और मैलापन नीचे बैठने के लिए ३० मिनट छोड़ दें।',
-      'step2_cloudy': '२. निस्पंदन (Filtration): ऊपर का साफ़ पानी अलग करके एक्टिवेटेड कार्बन या सैंड फिल्टर से छानें ताकि मैलापन १.० NTU से कम हो जाए।',
-      'step3_cloudy': '३. कीटाणुशोधन: हानिकारक बैक्टीरिया और सूक्ष्मजीवों को नष्ट करने के लिए पानी को १००°C पर ३-५ मिनट तक उबालें।',
-      'step1_danger': '१. रासायनिक संतुलन: अम्लीय होने पर (pH < ६.५) बेकिंग सोडा और अधिक क्षारीय होने पर (pH > ८.५) साइट्रिक एसिड मिलाकर pH ७.२ करें।',
-      'step2_danger': '२. रिवर्स ऑस्मोसिस (RO): भारी धातुओं और अत्यधिक TDS को २०० PPM से नीचे लाने के लिए आरओ मेम्ब्रेन से गुजारें।',
-      'step3_danger': '३. यूवी बंध्याकरण: शेष वायरस और रोगाणुओं को पूरी तरह नष्ट करने के लिए यूवी-सी (UV-C २५४ nm) प्रकाश से उपचारित करें।',
+      'remedy_ph_low': 'pH संतुलन: पानी अम्लीय है (<6.5)। बेकिंग सोडा मिलाएं या कैल्साइट फिल्टर से गुजार कर pH 7.2 तक लाएं।',
+      'remedy_ph_high': 'क्षारीयता में कमी: पानी अधिक क्षारीय है (>8.5)। साइट्रिक एसिड या सामान्य पानी मिलाकर pH को सामान्य करें।',
+      'remedy_tds': 'RO शुद्धिकरण: उच्च TDS (>300 PPM) के लिए पानी को रिवर्स ऑस्मोसिस (RO) मेम्ब्रेन से गुजारें।',
+      'remedy_turb': 'स्कंदन और निस्पंदन: मैलापन हटाने के लिए १०-१५ मिलीग्राम फिटकरी मिलाएं और एक्टिवेटेड कार्बन फिल्टर से छानें।',
+      'remedy_temp_high': 'तापमान सामान्य करें: पानी अत्यधिक गर्म है (>35°C)। उपयोग से पहले इसे सामान्य तापमान (20-25°C) तक ठंडा होने दें।',
+      'remedy_temp_low': 'कम तापमान / सेंसर जांच: तापमान <= 0°C है। पानी के जमने या सेंसर कनेक्शन की जांच करें।',
     }
   };
 
   String t(String key) => _dict[currentLang]?[key] ?? _dict['en']![key]!;
 
-  // ===========================================================================
+  // ==========================================
   // 3. LIFECYCLE & BACKGROUND POLLING
-  // ===========================================================================
+  // ==========================================
   @override
   void initState() {
     super.initState();
@@ -256,9 +277,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.dispose();
   }
 
-  // ===========================================================================
+  // ==========================================
   // 4. HTTP TELEMETRY CLIENT
-  // ===========================================================================
+  // ==========================================
   Future<void> _fetchSensorData() async {
     if (isDemoMode) return;
 
@@ -305,9 +326,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
-  // ===========================================================================
+  // ==========================================
   // 5. PRESENTATION SIMULATION (DEMO MODE)
-  // ===========================================================================
+  // ==========================================
   void _triggerDemoMode() {
     setState(() {
       isDemoMode = !isDemoMode;
@@ -336,30 +357,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ===========================================================================
-  // 6. POTABILITY & WATER CLASSIFICATION ENGINE (100% OFFLINE READY)
-  // ===========================================================================
-  Map<String, dynamic> _getPotabilityAnalysis() {
-    // Determine active metrics (Live sensor stream vs Offline diagnostic sample)
-    final double evalPh = isConnected ? (ph ?? 7.0) : offlinePh;
-    final double evalTds = isConnected ? (tds ?? 200.0) : offlineTds;
-    final double evalTurb = isConnected ? (turbidity ?? 0.5) : offlineTurbidity;
+  // ==========================================
+  // 6. POTABILITY & BIOLOGICAL EFFECTS ENGINE
+  // ==========================================
+  Map<String, dynamic>? _getPotabilityAnalysis() {
+    if (!isConnected || ph == null || tds == null || turbidity == null) return null;
 
-    // RED TIER: Severe Contamination / Toxic Thresholds
-    final bool isToxic = evalPh < 6.0 || evalPh > 9.0 || evalTds > 600 || evalTurb > 5.0;
+    final List<String> healthAlerts = [];
+    final double temp = temperature ?? 25.0;
+
+    // Health Effect Warnings
+    if (ph! < 6.5) {
+      healthAlerts.add(t('alert_ph_low'));
+    } else if (ph! > 8.5) {
+      healthAlerts.add(t('alert_ph_high'));
+    }
+
+    if (tds! > 500) {
+      healthAlerts.add(t('alert_tds_high'));
+    }
+
+    if (turbidity! > 5.0) {
+      healthAlerts.add(t('alert_turb_high'));
+    }
+
+    if (temp >= 50.0 || temp < 0.0) {
+      healthAlerts.add(t('alert_temp_critical'));
+    } else if (temp > 28.0) {
+      healthAlerts.add(t('alert_temp_high'));
+    }
+
+    // RED TIER: Severe Contamination, Extreme Turbidity/TDS, or Hazardous Temp
+    final bool isToxic = ph! < 5.5 || ph! > 9.5 || tds! > 1000 || turbidity! > 10.0 || temp >= 50.0 || temp < 0.0;
     if (isToxic) {
       return {
         'status': t('status_toxic'),
-        'description': t('desc_toxic'),
+        'description': (temp >= 50.0 || temp < 0.0)
+            ? t('desc_thermal_danger')
+            : t('desc_toxic'),
         'color': const Color(0xFFF43F5E), // Danger Red
         'icon': Icons.cancel_rounded,
         'tier': 'red',
+        'alerts': healthAlerts,
       };
     }
 
-    // YELLOW TIER: Sub-optimal / Hard / Turbid (Safe for Bath, Skin, Wash)
+    // YELLOW TIER: Sub-optimal pH, elevated TDS, turbidity > 5 NTU, or hot water
     final bool isDomesticOnly =
-        (evalPh < 6.5 || evalPh > 8.5) || (evalTds > 300) || (evalTurb > 1.0);
+        (ph! < 6.5 || ph! > 8.5) || (tds! > 500) || (turbidity! > 5.0) || (temp > 35.0);
     if (isDomesticOnly) {
       return {
         'status': t('status_domestic'),
@@ -367,6 +412,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         'color': const Color(0xFFF59E0B), // Advisory Yellow
         'icon': Icons.warning_amber_rounded,
         'tier': 'yellow',
+        'alerts': healthAlerts,
       };
     }
 
@@ -377,42 +423,130 @@ class _DashboardScreenState extends State<DashboardScreen> {
       'color': const Color(0xFF10B981), // Safe Green
       'icon': Icons.check_circle_rounded,
       'tier': 'green',
+      'alerts': healthAlerts,
     };
   }
 
-  // ===========================================================================
-  // 7. PREDICTIVE/PRESCRIPTIVE ML WATER TREATMENT ENGINE (LOCAL INFERENCE)
-  // ===========================================================================
-  List<String> _getMlTreatmentProtocol(String tier) {
-    if (tier == 'green') {
-      return [t('safe_treatment')];
-    } else if (tier == 'yellow') {
-      return [
-        t('step1_cloudy'),
-        t('step2_cloudy'),
-        t('step3_cloudy'),
-      ];
-    } else {
-      return [
-        t('step1_danger'),
-        t('step2_danger'),
-        t('step3_danger'),
-      ];
+  // ==========================================
+  // 7. SPECIFIC PARAMETER-DRIVEN TREATMENT ENGINE
+  // ==========================================
+  List<String> _getSpecificTreatmentProtocol() {
+    final List<String> protocols = [];
+    final double temp = temperature ?? 25.0;
+
+    // 1. Thermal Anomalies
+    if (temp >= 35.0) {
+      protocols.add(t('remedy_temp_high'));
+    } else if (temp <= 0.0) {
+      protocols.add(t('remedy_temp_low'));
     }
+
+    // 2. pH Anomalies
+    if (ph != null && ph! < 6.5) {
+      protocols.add(t('remedy_ph_low'));
+    } else if (ph != null && ph! > 8.5) {
+      protocols.add(t('remedy_ph_high'));
+    }
+
+    // 3. Turbidity / Clarity Anomalies
+    if (turbidity != null && turbidity! > 1.0) {
+      protocols.add(t('remedy_turb'));
+    }
+
+    // 4. TDS / Mineral Load Anomalies
+    if (tds != null && tds! > 300) {
+      protocols.add(t('remedy_tds'));
+    }
+
+    // 5. Default Safe Treatment
+    if (protocols.isEmpty) {
+      protocols.add(t('safe_treatment'));
+    }
+
+    return protocols;
   }
 
+  // Synchronized Purity Rating matching sensor limits
   String _calculatePurity() {
-    final double evalPh = isConnected ? (ph ?? 7.0) : offlinePh;
-    final double evalTds = isConnected ? (tds ?? 200.0) : offlineTds;
+    if (!isConnected || ph == null || tds == null || turbidity == null) return '-- ${t('purity')}';
+    final double temp = temperature ?? 25.0;
 
-    if (evalPh >= 6.5 && evalPh <= 8.5 && evalTds <= 300) return '98% ${t('purity')}';
-    if (evalPh >= 6.0 && evalPh <= 9.0 && evalTds <= 600) return '82% ${t('purity')}';
-    return '45% ${t('alert')}';
+    if (temp >= 50.0 || temp < 0.0 || ph! < 5.5 || ph! > 9.5 || tds! > 1000 || turbidity! > 10.0) {
+      return '15% ${t('alert')}';
+    }
+
+    if (temp > 35.0 || ph! < 6.5 || ph! > 8.5 || tds! > 500 || turbidity! > 5.0) {
+      return '68% ${t('alert')}';
+    }
+
+    return '98% ${t('purity')}';
   }
 
-  // ===========================================================================
-  // 8. SETTINGS DIALOG (IP, Language, Theme)
-  // ===========================================================================
+  // ==========================================
+  // 8. POP-UP: FEATURE IN PROGRESS DIALOG
+  // ==========================================
+  void _showInProgressDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext ctx) {
+        final Color dlgBg = isDarkMode ? const Color(0xFF16223F) : Colors.white;
+        final Color dlgBorder = isDarkMode ? const Color(0xFF243356) : const Color(0xFFE2E8F0);
+        final Color dlgText = isDarkMode ? Colors.white : const Color(0xFF0F172A);
+
+        return AlertDialog(
+          backgroundColor: dlgBg,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(color: dlgBorder),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0x3300E5FF),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.engineering_rounded, color: Color(0xFF00E5FF), size: 24),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  t('in_progress_title'),
+                  style: TextStyle(color: dlgText, fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            t('in_progress_desc'),
+            style: TextStyle(
+              color: isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              fontSize: 13,
+              height: 1.45,
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF00E5FF),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              child: Text(
+                t('in_progress_ok'),
+                style: const TextStyle(color: Color(0xFF0B132B), fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // ==========================================
+  // 9. SETTINGS DIALOG (IP, Language, Theme)
+  // ==========================================
   void _openSettingsDialog() {
     _ipController.text = currentIp;
 
@@ -572,9 +706,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ===========================================================================
-  // 9. PRIMARY USER INTERFACE
-  // ===========================================================================
+  // ==========================================
+  // 10. PRIMARY USER INTERFACE
+  // ==========================================
   @override
   Widget build(BuildContext context) {
     final Color bgColor = isDarkMode ? const Color(0xFF0B132B) : const Color(0xFFF8FAFC);
@@ -585,7 +719,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     const Color neonCyan = Color(0xFF00E5FF);
     const Color emeraldGreen = Color(0xFF10B981);
     const Color alertRed = Color(0xFFF43F5E);
-    const Color warningYellow = Color(0xFFF59E0B);
 
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(
@@ -598,6 +731,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
 
     final potability = _getPotabilityAnalysis();
+    final specificProtocols = _getSpecificTreatmentProtocol();
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -820,261 +954,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Potability Status Card (Green / Yellow / Red Advisory)
-                Container(
-                  padding: const EdgeInsets.all(16.0),
-                  decoration: BoxDecoration(
-                    color: (potability['color'] as Color == emeraldGreen)
-                        ? const Color(0x1F10B981)
-                        : (potability['color'] as Color == alertRed
-                            ? const Color(0x1FF43F5E)
-                            : const Color(0x1FF59E0B)),
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
-                      color: potability['color'] as Color,
-                      width: 1.5,
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            potability['icon'] as IconData,
-                            color: potability['color'] as Color,
-                            size: 22,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              t('potability_title'),
-                              style: TextStyle(
-                                color: potability['color'] as Color,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.8,
-                              ),
-                            ),
-                          ),
-                          if (!isConnected)
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: (potability['color'] as Color).withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                t('offline_badge'),
-                                style: TextStyle(
-                                  color: potability['color'] as Color,
-                                  fontSize: 8.5,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        potability['status'] as String,
-                        style: TextStyle(
-                          color: textPrimary,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        potability['description'] as String,
-                        style: TextStyle(
-                          color: textSecondary,
-                          fontSize: 12,
-                          height: 1.4,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // =============================================================
-                // OFFLINE ML WATER TREATMENT FEATURE CARD
-                // =============================================================
-                Container(
-                  padding: const EdgeInsets.all(16.0),
-                  decoration: BoxDecoration(
-                    color: cardBg,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
-                      color: (potability['color'] as Color).withOpacity(0.5),
-                      width: 1.3,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(isDarkMode ? 0.3 : 0.05),
-                        offset: const Offset(0, 4),
-                        blurRadius: 10,
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: (potability['color'] as Color).withOpacity(0.15),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.auto_awesome_rounded,
-                              color: potability['color'] as Color,
-                              size: 18,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  t('treatment_title'),
-                                  style: TextStyle(
-                                    color: textPrimary,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 0.6,
-                                  ),
-                                ),
-                                Text(
-                                  t('model_tag'),
-                                  style: const TextStyle(
-                                    color: neonCyan,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      // Offline Interactive Presets (Visible when hardware is disconnected)
-                      if (!isConnected) ...[
-                        const SizedBox(height: 14),
-                        Text(
-                          t('offline_presets'),
-                          style: TextStyle(
-                            color: textSecondary,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.8,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            ChoiceChip(
-                              label: Text(t('preset_clean'), style: const TextStyle(fontSize: 11)),
-                              selected: potability['tier'] == 'green',
-                              selectedColor: emeraldGreen.withOpacity(0.25),
-                              onSelected: (_) {
-                                setState(() {
-                                  offlinePh = 7.4;
-                                  offlineTds = 120.0;
-                                  offlineTurbidity = 0.5;
-                                });
-                              },
-                            ),
-                            ChoiceChip(
-                              label: Text(t('preset_cloudy'), style: const TextStyle(fontSize: 11)),
-                              selected: potability['tier'] == 'yellow',
-                              selectedColor: warningYellow.withOpacity(0.25),
-                              onSelected: (_) {
-                                setState(() {
-                                  offlinePh = 7.15;
-                                  offlineTds = 450.0;
-                                  offlineTurbidity = 2.8;
-                                });
-                              },
-                            ),
-                            ChoiceChip(
-                              label: Text(t('preset_toxic'), style: const TextStyle(fontSize: 11)),
-                              selected: potability['tier'] == 'red',
-                              selectedColor: alertRed.withOpacity(0.25),
-                              onSelected: (_) {
-                                setState(() {
-                                  offlinePh = 4.8;
-                                  offlineTds = 980.0;
-                                  offlineTurbidity = 7.5;
-                                });
-                              },
-                            ),
-                          ],
-                        ),
-                      ],
-
-                      const Divider(height: 20, thickness: 0.8),
-                      Text(
-                        t('action_plan'),
-                        style: TextStyle(
-                          color: textSecondary,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.8,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      ..._getMlTreatmentProtocol(potability['tier'] as String).map(
-                        (step) => Padding(
-                          padding: const EdgeInsets.only(bottom: 8.0),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(
-                                Icons.check_circle_outline_rounded,
-                                color: potability['color'] as Color,
-                                size: 16,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  step,
-                                  style: TextStyle(
-                                    color: textPrimary,
-                                    fontSize: 12,
-                                    height: 1.45,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Sensor Cards
+                // ==========================================
+                // 4 SENSOR CARDS
+                // ==========================================
                 _buildSensorCard(
                   title: t('tds'),
-                  value: isConnected
-                      ? (tds != null ? tds!.toStringAsFixed(0) : '--')
-                      : offlineTds.toStringAsFixed(0),
+                  value: (isConnected && tds != null) ? tds!.toStringAsFixed(0) : '--',
                   unit: 'PPM',
                   icon: Icons.grain_rounded,
                   accentColor: neonCyan,
-                  statusText: isConnected
-                      ? (tds != null ? (tds! <= 300 ? t('good') : t('elevated')) : t('offline'))
-                      : (offlineTds <= 300 ? t('good') : t('elevated')),
+                  statusText: isConnected ? (tds! <= 300 ? t('good') : t('elevated')) : t('offline'),
                   cardBg: cardBg,
                   cardBorder: cardBorder,
                   textPrimary: textPrimary,
@@ -1084,15 +973,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                 _buildSensorCard(
                   title: t('ph'),
-                  value: isConnected
-                      ? (ph != null ? ph!.toStringAsFixed(2) : '--')
-                      : offlinePh.toStringAsFixed(2),
+                  value: (isConnected && ph != null) ? ph!.toStringAsFixed(2) : '--',
                   unit: 'pH',
                   icon: Icons.science_rounded,
                   accentColor: const Color(0xFF38BDF8),
                   statusText: isConnected
-                      ? (ph != null ? (ph! >= 6.5 && ph! <= 8.5 ? t('optimal') : t('warning_status')) : t('offline'))
-                      : (offlinePh >= 6.5 && offlinePh <= 8.5 ? t('optimal') : t('warning_status')),
+                      ? (ph! >= 6.5 && ph! <= 8.5 ? t('optimal') : t('warning_status'))
+                      : t('offline'),
                   cardBg: cardBg,
                   cardBorder: cardBorder,
                   textPrimary: textPrimary,
@@ -1102,15 +989,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                 _buildSensorCard(
                   title: t('turb'),
-                  value: isConnected
-                      ? (turbidity != null ? turbidity!.toStringAsFixed(2) : '--')
-                      : offlineTurbidity.toStringAsFixed(2),
+                  value: (isConnected && turbidity != null) ? turbidity!.toStringAsFixed(2) : '--',
                   unit: 'NTU',
                   icon: Icons.water_rounded,
                   accentColor: const Color(0xFF67E8F9),
-                  statusText: isConnected
-                      ? (turbidity != null ? (turbidity! <= 1.0 ? t('clear') : t('hazy')) : t('offline'))
-                      : (offlineTurbidity <= 1.0 ? t('clear') : t('hazy')),
+                  statusText: isConnected ? (turbidity! <= 5.0 ? t('clear') : t('hazy')) : t('offline'),
                   cardBg: cardBg,
                   cardBorder: cardBorder,
                   textPrimary: textPrimary,
@@ -1120,21 +1003,265 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                 _buildSensorCard(
                   title: t('temp'),
-                  value: isConnected
-                      ? (temperature != null ? temperature!.toStringAsFixed(1) : '--')
-                      : offlineTemperature.toStringAsFixed(1),
+                  value: (isConnected && temperature != null) ? temperature!.toStringAsFixed(1) : '--',
                   unit: '°C',
                   icon: Icons.thermostat_rounded,
                   accentColor: emeraldGreen,
                   statusText: isConnected
-                      ? (temperature != null ? t('normal') : t('offline'))
-                      : t('normal'),
+                      ? ((temperature! >= 50.0 || temperature! < 0.0)
+                          ? t('warning_status')
+                          : (temperature! > 28.0 ? t('elevated') : t('normal')))
+                      : t('offline'),
                   cardBg: cardBg,
                   cardBorder: cardBorder,
                   textPrimary: textPrimary,
                   textSecondary: textSecondary,
                 ),
-                const SizedBox(height: 22),
+                const SizedBox(height: 16),
+
+                // =============================================================
+                // END SCREEN: WATER USAGE ADVISORY & PHYSIOLOGICAL WARNINGS
+                // =============================================================
+                if (isConnected && potability != null) ...[
+                  // Potability Status Card
+                  Container(
+                    padding: const EdgeInsets.all(16.0),
+                    decoration: BoxDecoration(
+                      color: (potability['color'] as Color == emeraldGreen)
+                          ? const Color(0x1F10B981)
+                          : (potability['color'] as Color == alertRed
+                              ? const Color(0x1FF43F5E)
+                              : const Color(0x1FF59E0B)),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: potability['color'] as Color,
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              potability['icon'] as IconData,
+                              color: potability['color'] as Color,
+                              size: 22,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                t('potability_title'),
+                                style: TextStyle(
+                                  color: potability['color'] as Color,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          potability['status'] as String,
+                          style: TextStyle(
+                            color: textPrimary,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          potability['description'] as String,
+                          style: TextStyle(
+                            color: textSecondary,
+                            fontSize: 12,
+                            height: 1.4,
+                          ),
+                        ),
+                        
+                        // Parameter Biological/Health Alerts
+                        if ((potability['alerts'] as List).isNotEmpty) ...[
+                          const Divider(height: 22, thickness: 0.8),
+                          Text(
+                            t('health_alerts_title'),
+                            style: TextStyle(
+                              color: potability['color'] as Color,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.7,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          ...List.generate(
+                            (potability['alerts'] as List).length,
+                            (idx) => Padding(
+                              padding: const EdgeInsets.only(bottom: 6.0),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(
+                                    Icons.warning_rounded,
+                                    color: potability['color'] as Color,
+                                    size: 14,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      potability['alerts'][idx],
+                                      style: TextStyle(
+                                        color: textPrimary,
+                                        fontSize: 11.5,
+                                        height: 1.35,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // ===========================================================
+                  // INTERACTIVE WATER TREATMENT PROTOCOL CARD
+                  // Tapping triggers the "Feature In Progress" dialog
+                  // ===========================================================
+                  InkWell(
+                    borderRadius: BorderRadius.circular(18),
+                    onTap: _showInProgressDialog,
+                    child: Container(
+                      padding: const EdgeInsets.all(16.0),
+                      decoration: BoxDecoration(
+                        color: cardBg,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: (potability['color'] as Color).withOpacity(0.5),
+                          width: 1.3,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(isDarkMode ? 0.3 : 0.05),
+                            offset: const Offset(0, 4),
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: (potability['color'] as Color).withOpacity(0.15),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.auto_awesome_rounded,
+                                  color: potability['color'] as Color,
+                                  size: 18,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      t('treatment_title'),
+                                      style: TextStyle(
+                                        color: textPrimary,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 0.6,
+                                      ),
+                                    ),
+                                    Text(
+                                      t('treatment_sub'),
+                                      style: const TextStyle(
+                                        color: neonCyan,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0x2600E5FF),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: const Color(0x6600E5FF)),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.touch_app_rounded, color: neonCyan, size: 12),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      t('tap_details'),
+                                      style: const TextStyle(
+                                        color: neonCyan,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Divider(height: 20, thickness: 0.8),
+                          Text(
+                            t('action_plan'),
+                            style: TextStyle(
+                              color: textSecondary,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          ...specificProtocols.map(
+                            (step) => Padding(
+                              padding: const EdgeInsets.only(bottom: 8.0),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(
+                                    Icons.check_circle_outline_rounded,
+                                    color: potability['color'] as Color,
+                                    size: 16,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      step,
+                                      style: TextStyle(
+                                        color: textPrimary,
+                                        fontSize: 12,
+                                        height: 1.45,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
 
                 // Bottom Link Feed Action Button
                 Container(
@@ -1187,9 +1314,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ===========================================================================
-  // 10. REUSABLE SENSOR CARD COMPONENT
-  // ===========================================================================
+  // ==========================================
+  // 11. REUSABLE SENSOR CARD COMPONENT
+  // ==========================================
   Widget _buildSensorCard({
     required String title,
     required String value,
